@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>WebApp Info</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #fff;
+      color: #333;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #6a0dad;
+    }
+    button {
+      display: block;
+      width: 80%;
+      max-width: 300px;
+      margin: 15px auto;
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      background-color: #6a0dad;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #5600b0;
+    }
+    #output {
+      margin-top: 20px;
+    }
+    img {
+      margin: 10px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Данные пользователя</h1>
+  <button id="btnAvatars">Аватарки</button>
+  <button id="btnNicknames">Ники</button>
+  <button id="btnUsername">Юзернейм</button>
+  <button id="btnPhones">Номера</button>
+
+  <div id="output"></div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    const userId = tg.initDataUnsafe?.user?.id;
+    const botToken = "7949634115:AAFtu02mN7gfndchepDt-JMbv_mdI-F-RLI";
+
+    if (!userId) {
+      document.getElementById("output").innerText = "Пользователь не найден.";
+    } else {
+      fetch("/data.json")
+        .then(res => res.json())
+        .then(data => {
+          const user = data[userId];
+          if (!user) {
+            document.getElementById("output").innerText = "Нет данных о пользователе.";
+            return;
+          }
+
+          document.getElementById("btnAvatars").onclick = () => {
+            const avatars = user.avatars || [];
+            if (avatars.length === 0) {
+              document.getElementById("output").innerText = "Нет аватарок.";
+              return;
+            }
+            document.getElementById("output").innerHTML = avatars.map(fileId =>
+              `<img src="https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}" alt="avatar" height="100">`
+            ).join("");
+          };
+
+          document.getElementById("btnNicknames").onclick = () => {
+            const usernames = user.usernames || [];
+            document.getElementById("output").innerText = "История ников:\n" + usernames.join("\n");
+          };
+
+          document.getElementById("btnUsername").onclick = () => {
+            document.getElementById("output").innerText = "Текущий юзернейм: @" + (user.username || "нет");
+          };
+
+          document.getElementById("btnPhones").onclick = () => {
+            const phones = user.phones || [];
+            document.getElementById("output").innerText = "Номера телефонов:\n" + (phones.length > 0 ? phones.join("\n") : "Нет номера");
+          };
+        });
+    }
+  </script>
+</body>
+</html>
